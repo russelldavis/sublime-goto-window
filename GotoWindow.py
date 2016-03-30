@@ -29,10 +29,6 @@ class GotoWindowCommand(sublime_plugin.WindowCommand):
         # Hack needed for OS X due to this bug
         # https://github.com/SublimeTextIssues/Core/issues/444
         if sublime.platform() == 'osx':
-            name = 'Sublime Text'
-            if int(sublime.version()) < 3000:
-                name = 'Sublime Text 2'
-
             # This is some magic. I spent many many hours trying to find a
             # workaround for the Sublime Text bug. I found a bunch of ugly
             # solutions, but this was the simplest one I could figure out.
@@ -43,11 +39,13 @@ class GotoWindowCommand(sublime_plugin.WindowCommand):
             # command+tab order. The delay of 1/60 of a second is the minimum
             # supported by Applescript.
             cmd = """
-                tell application "System Events"
-                    activate application "Dock"
-                    delay 1/60
-                    activate application "%s"
-                end tell""" % name
+                tell application "Finder"
+                  set frontApp to short name of first process whose frontmost is true
+                end tell
+                tell application "Dock" to activate
+                delay 1/60
+                tell application frontApp to activate
+                """
 
             Popen(['/usr/bin/osascript', "-e", cmd], stdout=PIPE, stderr=PIPE)
 
